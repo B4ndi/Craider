@@ -1,0 +1,10 @@
+from stress2 import *
+C = dict(btc_filter=True, btc_exit=True, topk=10, slots=8, tvol=0.4)
+evaluate("Craider baseline", **C)
+print("--- Fear & Greed ---")
+for v in (70, 80, 90): evaluate(f"no entries when F&G >= {v}", fng_max=v, **C)
+for v in (25, 40): evaluate(f"no entries when F&G < {v}", fng_min=v, **C)
+print("--- funding (crowding) ---")
+for v in (0.2, 0.3, 0.5): evaluate(f"no entry if 7d funding > {v*100:.0f}%/yr", fund_max=v, **C)
+print("--- carry on idle cash (1x hedge = half the funding rate) ---")
+evaluate("carry 0.5x funding, 1%/yr cost", carry=0.5, **C)

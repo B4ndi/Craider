@@ -29,6 +29,11 @@ class P:
     kill_days: int = 30
     seed: int | None = None   # None = fixed coin order, else random priority per candle
     tvol: float = 0.0         # volatility targeting: scale each stake by tvol / coin's annualized vol (0 = off)
+    fng_max: int = 0          # block new entries while Fear&Greed (yesterday) >= this (0 = off)
+    fng_min: int = 0          # block new entries while Fear&Greed (yesterday) < this (0 = off)
+    fund_max: float = 0.0     # block entry if coin's 7-day avg funding (annualized) > this (0 = off)
+    carry: float = 0.0        # fraction of BTC/ETH funding yield earned on idle cash (0 = off)
+    carry_cost: float = 0.01  # annual cost drag of running the carry leg
     topk: int = 0             # only trade the top-k coins by 30-day dollar volume (0 = all)
 
 
@@ -48,6 +53,26 @@ def btc_regime(index):
     return bull.reindex(index, method="ffill").fillna(False).values
 
 
+def fng_series(idx):
+    import json
+    d = json.load(open(DATA / "fng.json"))["data"]
+    s = pd.Series({pd.Timestamp(int(x["timestamp"]), unit="s", tz="UTC"): int(x["value"]) for x in d}).sort_index()
+    s.index = s.index + pd.Timedelta(days=1)  # a day's value is only usable after that day ends
+    return s.reindex(idx, method="ffill").values
+
+
+def carry_series(idx):
+    """Per-4h-candle funding earned by short perp vs long spot, BTC/ETH average, only while
+    the trailing 7-day funding is positive (otherwise the carry leg is closed)."""
+    parts = []
+    for c in ("BTC", "ETH"):
+        fr = pd.read_feather(DATA / f"{c}-funding.feather").set_index("date")["rate"]
+        on = (fr.rolling("7D").sum() > 0).shift(1, fill_value=False)
+        parts.append((fr * on).resample("4h").sum())
+    s = pd.concat(parts, axis=1).mean(axis=1)
+    return s.reindex(idx).fillna(0).values
+
+
 def prepare(data, p: P):
     idx = sorted(set().union(*[d.index for d in data.values()]))
     idx = pd.DatetimeIndex(idx)
@@ -65,6 +90,15 @@ def prepare(data, p: P):
         d.iloc[-1, d.columns.get_loc("last")] = 1.0
         d = d.reindex(idx)
         for k in arr: arr[k][:, j] = d[k].values
+    arr["fng"] = fng_series(idx)
+    arr["fund"] = np.full((len(idx), len(data)), np.nan)
+    for j, c in enumerate(data):
+        f = DATA / f"{c}-funding.feather"
+        if f.exists():
+            fr = pd.read_feather(f).set_index("date")["rate"]
+            ann = fr.rolling("7D").sum() * 365 / 7
+            arr["fund"][:, j] = ann.reindex(idx, method="ffill").values
+    arr["carry"] = carry_series(idx)
     dv = pd.DataFrame(arr["dvol"]).ffill(limit=6)
     dv[np.isnan(arr["close"])] = np.nan
     arr["vrank"] = dv.rank(axis=1, ascending=False).values
@@ -122,6 +156,9 @@ def run(data, p: P, start=None, end=None, prepared=None):
         # 3) delisting / end of coin data
         for j in list(pos):
             if a["last"][t][j] == 1: close_pos(j, c[j], t, "delist")
+        # 3b) idle cash earns carry
+        if p.carry:
+            cash += cash * (p.carry * a["carry"][t] - p.carry_cost / (6 * 365))
         # 4) mark to market (missing candles valued at last known close)
         eq = cash
         for j, q in pos.items():
@@ -138,8 +175,11 @@ def run(data, p: P, start=None, end=None, prepared=None):
         # 6) signals on this close -> act next open
         for j in pos:
             if a["exit"][t][j] == 1 or (p.btc_exit and not bull[t]): pend_out.add(j)
-        if t >= paused_until and bull[t]:
-            cand = [j for j in range(n) if a["enter"][t][j] == 1 and (not p.topk or a["vrank"][t][j] <= p.topk) and j not in pos and a["last"][t][j] != 1]
+        fng = a["fng"][t]
+        fng_ok = not ((p.fng_max and fng >= p.fng_max) or (p.fng_min and fng < p.fng_min))
+        if t >= paused_until and bull[t] and fng_ok:
+            cand = [j for j in range(n) if a["enter"][t][j] == 1 and (not p.topk or a["vrank"][t][j] <= p.topk)
+                    and not (p.fund_max and a["fund"][t][j] > p.fund_max) and j not in pos and a["last"][t][j] != 1]
             if rng is not None: rng.shuffle(cand)
             pend_in = cand
     return pd.Series(curve, index=idx[lo:hi]), pd.DataFrame(trades, columns=["date", "coin", "ret", "why"])
