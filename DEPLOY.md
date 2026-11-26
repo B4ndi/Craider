@@ -4,7 +4,9 @@ Total cost: about $5/month for the server. Time: ~1 hour the first time.
 
 ## 1. Get a server
 Rent the cheapest Linux server (Ubuntu 24.04, 1–2 GB RAM) from e.g. Hetzner or DigitalOcean.
-**Pick a European location** — Binance blocks servers in the US and some other countries.
+**Pick Frankfurt** (or another location in a country Binance serves): Binance blocks servers in the
+US and some other countries. Check from the server with
+`curl -s -o /dev/null -w '%{http_code}\n' https://api.binance.com/api/v3/ping` (should print 200).
 Note its IP address.
 
 ## 2. Install the bot
@@ -14,6 +16,13 @@ curl -fsSL https://get.docker.com | sh
 git clone https://github.com/B4ndi/craider.git
 cd craider
 cp user_data/config.private.example.json user_data/config.private.json
+mkdir -p user_data/logs && chown -R 1000:1000 user_data   # the bot runs as user 1000 inside Docker
+```
+
+On a server with less than 1 GB RAM, add swap first:
+```bash
+fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
 ```
 
 ## 3. Telegram (to watch and control the bot from your phone)
