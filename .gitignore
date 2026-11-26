@@ -1,0 +1,10 @@
+.venv/
+user_data/data/
+user_data/backtest_results/
+user_data/logs/
+user_data/*.sqlite*
+user_data/hyperopt_results/
+user_data/plot/
+user_data/notebooks/
+__pycache__/
+config.private.json

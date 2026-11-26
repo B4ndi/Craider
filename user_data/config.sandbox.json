@@ -1,0 +1,22 @@
+{
+  "exchange": {
+    "ccxt_config": {
+      "urls": {
+        "api": {
+          "public": "https://data-api.binance.vision/api/v3"
+        }
+      },
+      "options": {
+        "fetchMarkets": {
+          "types": [
+            "spot"
+          ]
+        }
+      }
+    },
+    "ccxt_async_config": {
+      "aiohttp_trust_env": true,
+      "cafile": "/root/.ccr/ca-bundle.crt"
+    }
+  }
+}
