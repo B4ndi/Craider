@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.freqtrade.io/schema.json",
-  "max_open_trades": 4,
+  "max_open_trades": 8,
   "stake_currency": "USDT",
   "stake_amount": "unlimited",
   "tradable_balance_ratio": 0.99,
@@ -8,14 +8,13 @@
   "dry_run_wallet": 1000,
   "trading_mode": "spot",
   "timeframe": "4h",
-  "fee": 0.001,
   "entry_pricing": {
-    "price_side": "same",
+    "price_side": "other",
     "use_order_book": true,
     "order_book_top": 1
   },
   "exit_pricing": {
-    "price_side": "same",
+    "price_side": "other",
     "use_order_book": true,
     "order_book_top": 1
   },
@@ -27,25 +26,62 @@
     "pair_whitelist": [
       "BTC/USDT",
       "ETH/USDT",
-      "SOL/USDT",
-      "BNB/USDT",
       "XRP/USDT",
+      "BCH/USDT",
+      "LTC/USDT",
+      "BNB/USDT",
+      "XTZ/USDT",
+      "XLM/USDT",
       "ADA/USDT",
-      "DOGE/USDT",
+      "TRX/USDT",
       "LINK/USDT",
+      "ETC/USDT",
+      "NEO/USDT",
+      "DASH/USDT",
+      "ATOM/USDT",
+      "IOTA/USDT",
+      "ZEC/USDT",
+      "DOT/USDT",
+      "UNI/USDT",
+      "THETA/USDT",
+      "VET/USDT",
+      "FIL/USDT",
+      "SOL/USDT",
       "AVAX/USDT",
-      "LTC/USDT"
+      "DOGE/USDT",
+      "NEAR/USDT",
+      "ALGO/USDT",
+      "ICP/USDT",
+      "AXS/USDT",
+      "SAND/USDT",
+      "MANA/USDT",
+      "EGLD/USDT",
+      "CHZ/USDT",
+      "AAVE/USDT",
+      "HBAR/USDT"
     ],
     "pair_blacklist": []
   },
   "pairlists": [
     {
       "method": "StaticPairList"
+    },
+    {
+      "method": "VolumePairList",
+      "number_assets": 10,
+      "sort_key": "quoteVolume",
+      "lookback_days": 30,
+      "refresh_period": 86400
+    },
+    {
+      "method": "AgeFilter",
+      "min_days_listed": 30
     }
   ],
   "bot_name": "craider",
   "initial_state": "running",
   "internals": {
     "process_throttle_secs": 5
-  }
+  },
+  "strategy": "Craider"
 }

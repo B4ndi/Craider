@@ -1,0 +1,8 @@
+{
+  "fee": 0.001,
+  "pairlists": [
+    {
+      "method": "StaticPairList"
+    }
+  ]
+}

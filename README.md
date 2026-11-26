@@ -2,38 +2,42 @@
 
 Crypto trading bot for Binance spot, built on [Freqtrade](https://www.freqtrade.io).
 
-## Strategies (`user_data/strategies/`)
+## The strategy: `Craider` (user_data/strategies/Craider.py)
 
-| Strategy | Timeframe | Idea |
-|---|---|---|
-| `EmaTrend` | 4h | Hold while close > EMA50 > EMA200; exit below EMA100 |
-| `Donchian` | 1d | Buy 20-day high breakout, sell 10-day low |
-| `DonchianBtcFilter` | 1d | Donchian, but only enter while BTC is above its 200-day SMA |
-| `RsiMeanRev` | 1h | Buy RSI<30 dips below lower Bollinger band in an uptrend |
+Defensive trend following on 4h candles:
+- Trades the 10 most-traded coins (30-day volume) from a list of 35 established coins.
+- Buys when EMA50 > EMA200 and price > EMA50; sells when price < EMA100 or after a 20% loss.
+- Only holds anything while BTC is above its 200-day average; otherwise all cash.
+- Up to 8 positions, each scaled down by the coin's volatility.
 
-## Backtest results (10 major USDT pairs, 0.1% fee, $1000 start, 4 slots)
+Running it: see **[DEPLOY.md](DEPLOY.md)**.
 
-| | 2020–2023 | DD | 2024–Nov 2026 | DD |
-|---|---|---|---|---|
-| EmaTrend | +1147% | 58% | **+109%** | **28%** |
-| Donchian | +1556% | 71% | +2% | 59% |
-| DonchianBtcFilter | +2128% | 51% | +59% | 39% |
-| RsiMeanRev | +12% | 17% | −7% | 10% |
-| BTC buy & hold | +514% | 77% | +37% | 53% |
-| Equal-weight buy & hold | +1458% | 86% | −19% | 68% |
+## Research (research/)
 
-Parameters are textbook defaults, not optimized. Caveat: the pair list is today's
-large caps, so results carry survivorship bias.
+Own simulator (`sim.py`, cross-checked against Freqtrade) on 41 coins including collapsed/delisted
+ones (LUNA, EOS, XMR, MATIC, FTM) to avoid survivorship bias, 2020-01 → 2026-11.
 
-## Usage
+| | CAGR | Worst drop | Worst year |
+|---|---|---|---|
+| Hold all 41 coins | 39% | −85% | −76% |
+| Hold BTC | ~35% | −77% | −64% |
+| Plain EmaTrend, all coins, 4 slots | 92% (but −3%/yr since 2024) | −79% | −64% |
+| **Craider** | **29%** | **−23%** | **0%** |
 
+Robustness: 10 alternative EMA settings all give 30–43%/yr with 25–31% drawdown; tripling fees
+(slippage) still gives ~28%/yr. Year by year: 2020 +51%, 2021 +67%, 2022 0%, 2023 +32%,
+2024 +43%, 2025 +1%, 2026 +22%.
+
+Rejected: tighter stoplosses, trailing stops and a drawdown kill-switch all made results worse;
+RSI mean reversion and Donchian breakouts were weaker in 2024+.
+
+Reproduce: `cd research && ../.venv/bin/python fetch.py && ../.venv/bin/python final.py`
+
+## Dev usage
 ```bash
 python3 -m venv .venv && .venv/bin/pip install freqtrade
-.venv/bin/freqtrade download-data -c user_data/config.json --timerange 20200101- -t 1h 4h 1d
-.venv/bin/freqtrade backtesting -c user_data/config.json --strategy EmaTrend
-.venv/bin/freqtrade trade -c user_data/config.json --strategy EmaTrend   # dry_run by default
+.venv/bin/freqtrade download-data -c user_data/config.json -c user_data/config.backtest.json --timerange 20200101- -t 4h 1d
+.venv/bin/freqtrade backtesting -c user_data/config.json -c user_data/config.backtest.json --strategy Craider
 ```
-
-`user_data/config.sandbox.json` is only for the Claude cloud sandbox (Binance is
-geoblocked there); don't use it on a real server. Put API keys in a separate,
-uncommitted `config.private.json` and pass it as an extra `-c`.
+`config.backtest.json` swaps the volume-based pairlist (live only) for a static list.
+`config.sandbox.json` is only for the Claude cloud sandbox, where Binance is geoblocked.
