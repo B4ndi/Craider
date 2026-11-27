@@ -105,8 +105,11 @@ def prepare(data, p: P):
     return idx, arr
 
 
-def run(data, p: P, start=None, end=None, prepared=None, halt=None):
-    """halt: optional bool array aligned to the candle index; where True (news alarm), every open
+def run(data, p: P, start=None, end=None, prepared=None, halt=None, allow=None, scale=None, allow_exit=True):
+    """allow: optional bool array (candles x coins); where False the coin may not be entered and an
+    open position in it is sold at the next open (unless allow_exit=False) (see signals_backtest.py). scale: optional float array
+    per candle (or candles x coins) multiplying new stakes (e.g. 0.5 = half-size entries).
+    halt: optional bool array aligned to the candle index; where True (news alarm), every open
     position is sold at the next open and no new entries are taken (see news_backtest.py)."""
     idx, a = prepared or prepare(data, p)
     bull = btc_regime(idx) if (p.btc_filter or p.btc_exit) else np.ones(len(idx), bool)
@@ -141,6 +144,7 @@ def run(data, p: P, start=None, end=None, prepared=None, halt=None):
             stake = usable / (p.slots - len(pos))
             if p.tvol and not np.isnan(a["vol"][t - 1][j]):
                 stake = min(stake, mtm / p.slots * p.tvol / a["vol"][t - 1][j])
+            if scale is not None: stake = min(usable, stake * (scale[t - 1] if scale.ndim == 1 else scale[t - 1][j]))  # never borrow
             if stake < 10: continue
             cash -= stake
             pos[j] = dict(qty=stake * (1 - p.fee) / o[j], entry=o[j], peak=o[j], stake=stake)
@@ -177,6 +181,7 @@ def run(data, p: P, start=None, end=None, prepared=None, halt=None):
         # 6) signals on this close -> act next open
         for j in pos:
             if a["exit"][t][j] == 1 or (p.btc_exit and not bull[t]): pend_out.add(j)
+            if allow is not None and allow_exit and not allow[t][j]: pend_out.add(j)
         if halt is not None and halt[t]:
             pend_out |= set(pos)
             continue
@@ -184,7 +189,8 @@ def run(data, p: P, start=None, end=None, prepared=None, halt=None):
         fng_ok = not ((p.fng_max and fng >= p.fng_max) or (p.fng_min and fng < p.fng_min))
         if t >= paused_until and bull[t] and fng_ok:
             cand = [j for j in range(n) if a["enter"][t][j] == 1 and (not p.topk or a["vrank"][t][j] <= p.topk)
-                    and not (p.fund_max and a["fund"][t][j] > p.fund_max) and j not in pos and a["last"][t][j] != 1]
+                    and not (p.fund_max and a["fund"][t][j] > p.fund_max) and j not in pos and a["last"][t][j] != 1
+                    and (allow is None or allow[t][j])]
             if rng is not None: rng.shuffle(cand)
             pend_in = cand
     return pd.Series(curve, index=idx[lo:hi]), pd.DataFrame(trades, columns=["date", "coin", "ret", "why"])
