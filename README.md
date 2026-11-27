@@ -55,6 +55,12 @@ the narrow "stop the bot" alarm is ~free (+0–1 pp/yr) but only fired 3× while
 alarm is noise with short pauses and only looks good with long pauses in 2024+. Kept as a safety
 switch idea only.
 
+**Market-data signals** ([research/SIGNALS_BACKTEST.md](research/SIGNALS_BACKTEST.md), `signals_backtest.py`):
+only holding altcoins while they beat BTC cuts returns to 7–19%/yr (all 20 settings worse in both
+periods). Skipping entries during a BTC open-interest (leverage) build-up is about +1 pp/yr over 2022+,
+which is too small and too dependent on picking the best settings to adopt. Neither is in the live bot.
+Side finding: bigger BTC/ETH stakes raise returns and drawdowns (a risk choice, not a signal).
+
 Reproduce: `cd research && ../.venv/bin/python fetch.py && ../.venv/bin/python fetch2.py && curl -s 'https://api.alternative.me/fng/?limit=0' -o data/fng.json`, then run `final.py`, `run5.py`, `run6.py`.
 
 ## Dev usage
