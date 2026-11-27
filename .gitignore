@@ -8,5 +8,6 @@ user_data/plot/
 user_data/notebooks/
 __pycache__/
 user_data/config.private.json
+user_data/weekly_digest_state.json
 research/data/
 .env

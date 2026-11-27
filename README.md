@@ -9,6 +9,8 @@ Defensive trend following on 4h candles:
 - Buys when EMA50 > EMA200 and price > EMA50; sells when price < EMA100 or after a 20% loss.
 - Only holds anything while BTC is above its 200-day average; otherwise all cash.
 - Up to 8 positions, each scaled down by the coin's volatility.
+- Sends a weekly Telegram digest (profit, open trades, regime, watched coins, alarms);
+  schedule in `config.json`, see [DEPLOY.md](DEPLOY.md#weekly-digest-on-telegram).
 
 Running it: see **[DEPLOY.md](DEPLOY.md)**. A watchdog container (`watchdog/`) sends a Telegram alert if the bot or the Binance connection is down for 10 minutes.
 
@@ -57,3 +59,4 @@ python3 -m venv .venv && .venv/bin/pip install freqtrade
 ```
 `config.backtest.json` swaps the volume-based pairlist (live only) for a static list.
 `config.sandbox.json` is only for the Claude cloud sandbox, where Binance is geoblocked.
+Tests: `.venv/bin/pip install pytest && .venv/bin/pytest -q tests` (also run by GitHub Actions).
