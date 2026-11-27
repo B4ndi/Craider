@@ -83,5 +83,12 @@
   "internals": {
     "process_throttle_secs": 5
   },
-  "strategy": "Craider"
+  "strategy": "Craider",
+  "weekly_digest": {
+    "enabled": true,
+    "weekday": "sun",
+    "hour": 18,
+    "timezone": "UTC",
+    "send_on_startup": false
+  }
 }
