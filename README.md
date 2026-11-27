@@ -12,7 +12,7 @@ Defensive trend following on 4h candles:
 - Sends a weekly Telegram digest (profit, open trades, regime, watched coins, alarms);
   schedule in `config.json`, see [DEPLOY.md](DEPLOY.md#weekly-digest-on-telegram).
 
-Running it: see **[DEPLOY.md](DEPLOY.md)**.
+Running it: see **[DEPLOY.md](DEPLOY.md)**. A watchdog container (`watchdog/`) sends a Telegram alert if the bot or the Binance connection is down for 10 minutes.
 
 ## Research (research/)
 

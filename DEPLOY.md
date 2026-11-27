@@ -16,6 +16,8 @@ curl -fsSL https://get.docker.com | sh
 git clone https://github.com/B4ndi/craider.git
 cd craider
 cp user_data/config.private.example.json user_data/config.private.json
+# fill in random passwords for the bot's internal API (used by the watchdog, step 7)
+for f in jwt_secret_key ws_token password; do sed -i "s/\"$f\": \"PASTE_[^\"]*\"/\"$f\": \"$(openssl rand -hex 32)\"/" user_data/config.private.json; done
 mkdir -p user_data/logs && chown -R 1000:1000 user_data   # the bot runs as user 1000 inside Docker
 ```
 
@@ -40,7 +42,7 @@ Binance → Profile → API Management → Create API (System generated).
 ```bash
 docker compose up -d
 ```
-Telegram should greet you. Useful commands: `/status`, `/profit`, `/balance`, `/daily`, `/help`.
+Telegram should greet you twice: once from the bot, once from the watchdog (step 7). Useful commands: `/status`, `/profit`, `/balance`, `/daily`, `/help`.
 Leave `"dry_run": true` for **at least 4 weeks**. Note: the bot only buys while Bitcoin is above
 its 200-day average, so it may sit in cash for a while — that is intended.
 
@@ -74,11 +76,57 @@ Only when paper trading ran without errors:
 2. Set `"dry_run": false` in `user_data/config.private.json`.
 3. `docker compose up -d --force-recreate`
 
+## 7. Health alerts (watchdog)
+The bot is silent while it sits in cash, which can last months. So you can tell "quiet" from
+"dead", a second small container (`craider-watchdog`, code in `watchdog/`) checks every minute:
+
+| Check | Alerts when |
+|---|---|
+| **bot** | the bot container is down or crashed, its main loop has not finished a cycle for 3+ min (stuck), or it is stopped (`/stop` or a fatal error) |
+| **exchange** | Binance can't be reached from the server, or Binance rejects your API key (expired, deleted, server IP not on its allow list). Without a real key it only checks reachability. |
+
+A problem must last **10 minutes** before you get a Telegram message (🚨), so restarts and short
+blips stay quiet. While it lasts you get a reminder (⏰) every **6 hours**, and a ✅ when it clears.
+**No message means everything is fine.** It uses the same Telegram bot and chat as the bot itself.
+`/stopentry` (paused) does not count as a problem; `/stop` does, so you get a reminder every 6 hours
+until you `/start` again.
+
+It starts with `docker compose up -d` (step 5); nothing else to do if you followed step 2.
+
+**Test it once:** `docker stop craider`, wait ~11 minutes for the 🚨 message, then
+`docker start craider` and wait for the ✅.
+
+**If the whole server dies** nothing on it can send a message. To cover that too (optional, free):
+1. Sign up at [healthchecks.io](https://healthchecks.io), create a check with period **5 minutes**
+   and grace **10 minutes**, and connect Telegram under *Integrations*.
+2. Put its ping URL into a file `.env` next to `docker-compose.yml`:
+   `echo 'HEALTHCHECK_URL=https://hc-ping.com/your-uuid' > .env`
+3. `docker compose up -d`
+
+The watchdog pings that URL every minute while all is well (and `/fail` once a problem passes 10
+minutes), so healthchecks.io messages you when the pings stop or fail.
+
+**Tuning** (optional, also in `.env`): `WATCHDOG_DOWN_MINUTES=10`, `WATCHDOG_REMIND_HOURS=6`,
+`WATCHDOG_CHECK_SECONDS=60`. Then `docker compose up -d`.
+
+**Watchdog logs:** `docker logs --tail 50 craider-watchdog`. If it says the config is missing
+`api_server`, do the upgrade steps below.
+
+**Upgrading an existing install** (set up before the watchdog existed):
+```bash
+cd craider && git pull
+nano user_data/config.private.json   # add the "api_server" block from config.private.example.json
+for f in jwt_secret_key ws_token password; do sed -i "s/\"$f\": \"PASTE_[^\"]*\"/\"$f\": \"$(openssl rand -hex 32)\"/" user_data/config.private.json; done
+docker compose up -d --force-recreate
+```
+The bot's API listens only on Docker's internal network; no port is opened on the server.
+
 ## Emergency
 - `/stopentry` — stop buying, keep managing open trades.
 - `/forceexit all` — sell everything now.
-- `/stop` — stop the bot (stoplosses stay on Binance).
-- Or on the server: `cd craider && docker compose down`.
+- `/stop` — stop the bot (stoplosses stay on Binance). The watchdog reminds you every 6 hours.
+- Or on the server: `cd craider && docker compose down` (stops the watchdog too; pause the
+  healthchecks.io check first if you use one).
 
 ## What to expect
 Backtest 2020–Nov 2026 (41 coins incl. collapsed ones like LUNA): ~29%/yr, worst drop −23%,

@@ -5,6 +5,8 @@ services:
     container_name: craider
     volumes:
       - "./user_data:/freqtrade/user_data"
+    # The bot's API (port 8080) is only reachable by the watchdog on Docker's internal
+    # network. It is deliberately not published on the server's public IP.
     command: >
       trade
       --logfile /freqtrade/user_data/logs/craider.log
@@ -12,3 +14,18 @@ services:
       --config /freqtrade/user_data/config.json
       --config /freqtrade/user_data/config.private.json
       --strategy Craider
+
+  # Sends a Telegram alert when the bot or the Binance connection is down. See DEPLOY.md, step 7.
+  watchdog:
+    image: freqtradeorg/freqtrade:2026.10
+    restart: unless-stopped
+    container_name: craider-watchdog
+    volumes:
+      - "./user_data:/freqtrade/user_data:ro"
+      - "./watchdog:/watchdog:ro"
+    entrypoint: ["python", "/watchdog/craider_watchdog.py"]
+    environment:
+      WATCHDOG_CHECK_SECONDS: "${WATCHDOG_CHECK_SECONDS:-60}"
+      WATCHDOG_DOWN_MINUTES: "${WATCHDOG_DOWN_MINUTES:-10}"
+      WATCHDOG_REMIND_HOURS: "${WATCHDOG_REMIND_HOURS:-6}"
+      HEALTHCHECK_URL: "${HEALTHCHECK_URL:-}"
