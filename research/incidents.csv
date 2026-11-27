@@ -1,0 +1,50 @@
+time_utc,tier,kind,event,usd_m
+# Hand-curated security incidents a cybersecurity-news alarm would have fired on, 2020-01 to 2026-11.
+# time_utc = approximate moment the news was public (not when the attack began). Hours are rough;
+# the backtest sweeps an extra delay of 0-24h on top to cover that uncertainty.
+# tier A = the README's "stop the bot" cases: Binance itself compromised, USDT depeg, or a
+#          top-5 exchange hacked/halting with >= $500M at stake.
+# tier B = everything else a broad keyword alarm would catch (other exchange hacks/halts,
+#          big DeFi/bridge hacks, other stablecoin depegs).
+2020-09-26 03:00,B,exchange_hack,KuCoin hot wallets drained,281
+2021-08-10 12:00,B,defi_hack,Poly Network bridge hack,611
+2021-08-19 06:00,B,exchange_hack,Liquid exchange hack,97
+2021-12-05 00:00,B,exchange_hack,BitMart hot wallets drained,196
+2022-01-17 06:00,B,withdrawal_halt,Crypto.com pauses withdrawals after hack,34
+2022-03-29 14:00,B,defi_hack,Ronin bridge hack disclosed,625
+2022-05-09 00:00,B,stablecoin_depeg,UST (Terra) loses its peg,0
+2022-05-12 06:00,A,usdt_depeg,USDT trades down to ~0.95,0
+2022-06-13 02:00,B,withdrawal_halt,Celsius halts withdrawals,0
+2022-07-01 18:00,B,withdrawal_halt,Voyager halts withdrawals,0
+2022-08-01 22:00,B,defi_hack,Nomad bridge hack,190
+2022-10-06 23:00,A,exchange_hack,BNB Chain (Binance) bridge hack - chain halted,570
+2022-11-08 12:00,A,withdrawal_halt,FTX halts withdrawals,0
+2022-11-12 00:00,B,exchange_hack,FTX wallets drained after bankruptcy,477
+2022-11-16 16:00,B,withdrawal_halt,Genesis halts withdrawals,0
+2023-03-11 03:00,B,stablecoin_depeg,USDC depegs on SVB exposure,0
+2023-03-13 10:00,B,defi_hack,Euler Finance hack,197
+2023-06-03 12:00,B,wallet_hack,Atomic Wallet users drained,100
+2023-06-15 12:00,A,usdt_depeg,USDT slips to ~0.997 (Curve pool imbalance),0
+2023-07-07 00:00,B,defi_hack,Multichain abnormal outflows,126
+2023-07-30 18:00,B,defi_hack,Curve / Vyper exploit,70
+2023-09-12 12:00,B,exchange_hack,CoinEx hot wallets drained,54
+2023-09-25 00:00,B,exchange_hack,Mixin Network hack,200
+2023-11-10 14:00,B,exchange_hack,Poloniex hot wallets drained,120
+2023-11-22 22:00,B,exchange_hack,HTX and Heco bridge hack,113
+2024-01-01 12:00,B,defi_hack,Orbit bridge hack,81
+2024-05-31 12:00,B,exchange_hack,DMM Bitcoin hack,305
+2024-07-18 10:00,B,exchange_hack,WazirX hack - withdrawals halted,235
+2024-09-20 03:00,B,exchange_hack,BingX hot wallet hack,44
+2024-10-16 18:00,B,defi_hack,Radiant Capital hack,50
+2025-01-23 06:00,B,exchange_hack,Phemex hot wallets drained,70
+2025-02-21 15:00,A,exchange_hack,Bybit cold wallet hack,1460
+2025-05-22 12:00,B,defi_hack,Cetus (Sui) hack,223
+2025-06-18 10:00,B,exchange_hack,Nobitex hack,90
+2025-07-19 06:00,B,exchange_hack,CoinDCX hack,44
+2025-10-10 22:00,B,stablecoin_depeg,USDe depegs on Binance during crash,0
+2025-11-03 10:00,B,defi_hack,Balancer exploit,128
+2025-11-27 06:00,B,exchange_hack,Upbit Solana hot wallet hack,36
+2026-04-01 18:00,B,defi_hack,Drift Protocol exploit,285
+2026-04-18 18:00,B,defi_hack,Kelp DAO rsETH bridge exploit,292
+2026-09-24 19:00,B,exchange_hack,Bitget hot wallets drained - withdrawals paused,388
+2026-10-29 21:00,A,exchange_hack,Binance hot wallets drained - withdrawals suspended,6300
