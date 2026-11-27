@@ -9,3 +9,4 @@ user_data/notebooks/
 __pycache__/
 user_data/config.private.json
 research/data/
+.env

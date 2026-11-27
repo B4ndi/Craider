@@ -10,7 +10,7 @@ Defensive trend following on 4h candles:
 - Only holds anything while BTC is above its 200-day average; otherwise all cash.
 - Up to 8 positions, each scaled down by the coin's volatility.
 
-Running it: see **[DEPLOY.md](DEPLOY.md)**.
+Running it: see **[DEPLOY.md](DEPLOY.md)**. A watchdog container (`watchdog/`) sends a Telegram alert if the bot or the Binance connection is down for 10 minutes.
 
 ## Research (research/)
 

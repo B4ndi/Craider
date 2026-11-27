@@ -1,0 +1,21 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Watchdog unit tests
+        working-directory: watchdog
+        run: python -m unittest -v
+      - name: docker-compose.yml is valid
+        run: |
+          docker compose config --quiet

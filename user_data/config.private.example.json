@@ -8,5 +8,16 @@
     "enabled": true,
     "token": "PASTE_TELEGRAM_BOT_TOKEN",
     "chat_id": "PASTE_YOUR_TELEGRAM_CHAT_ID"
+  },
+  "api_server": {
+    "enabled": true,
+    "listen_ip_address": "0.0.0.0",
+    "listen_port": 8080,
+    "verbosity": "error",
+    "enable_openapi": false,
+    "jwt_secret_key": "PASTE_OUTPUT_OF_openssl_rand_-hex_32",
+    "ws_token": "PASTE_OUTPUT_OF_openssl_rand_-hex_32",
+    "username": "craider",
+    "password": "PASTE_OUTPUT_OF_openssl_rand_-hex_32"
   }
 }
