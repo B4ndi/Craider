@@ -44,6 +44,29 @@ Telegram should greet you. Useful commands: `/status`, `/profit`, `/balance`, `/
 Leave `"dry_run": true` for **at least 4 weeks**. Note: the bot only buys while Bitcoin is above
 its 200-day average, so it may sit in cash for a while — that is intended.
 
+## Weekly digest on Telegram
+Every **Sunday at 18:00 UTC** the bot sends one message with: overall and this week's profit,
+open trades, the regime (BTC vs its 200-day average, i.e. whether the bot may buy), the coins it is
+watching, and alarms (stoplosses hit, plus errors and Binance warnings from the log).
+
+**Change the schedule** in `user_data/config.json`:
+```json
+"weekly_digest": {
+  "enabled": true,
+  "weekday": "sun",
+  "hour": 18,
+  "timezone": "UTC",
+  "send_on_startup": false
+}
+```
+- `weekday`: `mon` … `sun`. `hour`: 0–23. `timezone`: any name like `Europe/Oslo` or `America/New_York`.
+- `"enabled": false` turns it off.
+- `"send_on_startup": true` sends one digest right after every start; handy to check it works.
+
+Then restart: `docker compose up -d --force-recreate`. The time of the last digest is kept in
+`user_data/weekly_digest_state.json`, so restarts don't send duplicates; if the bot was off at the
+scheduled time, the missed digest is sent once when it comes back.
+
 ## 6. Going live
 Only when paper trading ran without errors:
 1. Put the money you're prepared to lose into your Binance spot wallet as **USDT**.
