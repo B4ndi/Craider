@@ -105,7 +105,9 @@ def prepare(data, p: P):
     return idx, arr
 
 
-def run(data, p: P, start=None, end=None, prepared=None):
+def run(data, p: P, start=None, end=None, prepared=None, halt=None):
+    """halt: optional bool array aligned to the candle index; where True (news alarm), every open
+    position is sold at the next open and no new entries are taken (see news_backtest.py)."""
     idx, a = prepared or prepare(data, p)
     bull = btc_regime(idx) if (p.btc_filter or p.btc_exit) else np.ones(len(idx), bool)
     lo = idx.searchsorted(pd.Timestamp(start, tz="UTC")) if start else 0
@@ -175,6 +177,9 @@ def run(data, p: P, start=None, end=None, prepared=None):
         # 6) signals on this close -> act next open
         for j in pos:
             if a["exit"][t][j] == 1 or (p.btc_exit and not bull[t]): pend_out.add(j)
+        if halt is not None and halt[t]:
+            pend_out |= set(pos)
+            continue
         fng = a["fng"][t]
         fng_ok = not ((p.fng_max and fng >= p.fng_max) or (p.fng_min and fng < p.fng_min))
         if t >= paused_until and bull[t] and fng_ok:

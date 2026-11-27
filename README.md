@@ -49,6 +49,12 @@ News: the CyberNews dashboard keeps 30 days of security news, so it can't be bac
 news reaches us minutes to hours after prices move. Its best use is a safety alarm (e.g. Binance
 hacked or halting withdrawals → stop the bot), not a trading signal.
 
+**News backtest** ([research/NEWS_BACKTEST.md](research/NEWS_BACKTEST.md), `news_backtest.py`): 42 dated
+security incidents 2020–2026 (incl. the Oct 2026 Binance hack). News-driven exits don't reliably help:
+the narrow "stop the bot" alarm is ~free (+0–1 pp/yr) but only fired 3× while invested; a broad
+alarm is noise with short pauses and only looks good with long pauses in 2024+. Kept as a safety
+switch idea only.
+
 Reproduce: `cd research && ../.venv/bin/python fetch.py && ../.venv/bin/python fetch2.py && curl -s 'https://api.alternative.me/fng/?limit=0' -o data/fng.json`, then run `final.py`, `run5.py`, `run6.py`.
 
 ## Dev usage
