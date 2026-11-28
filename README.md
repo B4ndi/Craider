@@ -11,6 +11,8 @@ Defensive trend following on 4h candles:
 - Up to 8 positions, each scaled down by the coin's volatility.
 - Sends a weekly Telegram digest (profit, open trades, regime, watched coins, alarms);
   schedule in `config.json`, see [DEPLOY.md](DEPLOY.md#weekly-digest-on-telegram).
+- Sends a daily Telegram market check (why it is or isn't buying, how close each coin is) and an
+  instant alert when BTC crosses its 200-day average, see [DEPLOY.md](DEPLOY.md#daily-market-check-on-telegram).
 
 Running it: see **[DEPLOY.md](DEPLOY.md)**. A watchdog container (`watchdog/`) sends a Telegram alert if the bot or the Binance connection is down for 10 minutes.
 
@@ -64,5 +66,6 @@ python3 -m venv .venv && .venv/bin/pip install freqtrade
 .venv/bin/freqtrade backtesting -c user_data/config.json -c user_data/config.backtest.json --strategy Craider
 ```
 `config.backtest.json` swaps the volume-based pairlist (live only) for a static list.
-`config.sandbox.json` is only for the Claude cloud sandbox, where Binance is geoblocked.
+`config.sandbox.json` is only for the Claude cloud sandbox, where Binance is geoblocked (it uses
+Binance's public data mirror, no websockets, and the sandbox proxy's certificate).
 Tests: `.venv/bin/pip install pytest && .venv/bin/pytest -q tests` (also run by GitHub Actions).

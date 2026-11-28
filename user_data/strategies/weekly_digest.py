@@ -84,12 +84,15 @@ class DigestSchedule:
             return False
         if self._startup_pending:
             return True
-        slot = last_slot(now, self.cfg)
+        slot = self._slot(now)
         if self._last_sent is None:
             # First run ever: don't fire straight away, wait for the next scheduled slot.
             self.mark_sent(slot)
             return False
         return self._last_sent < slot
+
+    def _slot(self, now: datetime) -> datetime:
+        return last_slot(now, self.cfg)
 
     def mark_sent(self, when: datetime) -> None:
         self._startup_pending = False
@@ -97,7 +100,7 @@ class DigestSchedule:
         try:
             self.state_path.write_text(json.dumps({"last_sent": when.isoformat()}))
         except OSError as e:
-            logger.warning("Weekly digest: could not save state to %s: %s", self.state_path, e)
+            logger.warning("Digest schedule: could not save state to %s: %s", self.state_path, e)
 
 
 def read_alarms(logfile: str | Path | None, since: datetime, top: int = 3) -> tuple[int, list]:

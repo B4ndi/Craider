@@ -18,9 +18,11 @@ from Craider import Craider  # noqa: E402
 NOW = datetime(2026, 11, 29, 18, 0, 5, tzinfo=timezone.utc)
 
 
-def make_strategy(tmp_path, runmode=RunMode.DRY_RUN, **digest):
+def make_strategy(tmp_path, runmode=RunMode.DRY_RUN, market_check=None, **digest):
     config = json.loads((ROOT / "user_data" / "config.json").read_text())
     config["weekly_digest"].update(digest)
+    # These tests are about the weekly digest; the daily check has its own tests.
+    config["market_check"] = market_check or {"enabled": False, "regime_alerts": False}
     config["user_data_dir"] = tmp_path
     config["logfile"] = None
     strat = Craider(config)

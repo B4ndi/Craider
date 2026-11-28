@@ -12,11 +12,13 @@
             "spot"
           ]
         }
-      }
+      },
+      "validateServerSsl": "/root/.ccr/ca-bundle.crt"
     },
     "ccxt_async_config": {
       "aiohttp_trust_env": true,
       "cafile": "/root/.ccr/ca-bundle.crt"
-    }
+    },
+    "enable_ws": false
   }
 }
