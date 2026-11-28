@@ -90,5 +90,12 @@
     "hour": 18,
     "timezone": "UTC",
     "send_on_startup": false
+  },
+  "market_check": {
+    "enabled": true,
+    "hour": 7,
+    "timezone": "UTC",
+    "send_on_startup": false,
+    "regime_alerts": true
   }
 }

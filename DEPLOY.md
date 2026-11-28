@@ -69,6 +69,29 @@ Then restart: `docker compose up -d --force-recreate`. The time of the last dige
 `user_data/weekly_digest_state.json`, so restarts don't send duplicates; if the bot was off at the
 scheduled time, the missed digest is sent once when it comes back.
 
+## Daily market check on Telegram
+Every day at **07:00 UTC** the bot sends a short message so you can see it is alive and why it is
+or isn't trading:
+- trading capital and profit, open trades, what it bought and sold in the last 24 hours;
+- **Can it buy?** BTC versus its 200-day average, and how far BTC has to rise before buying starts;
+- every watched coin with how many of the 3 buy rules it meets (uptrend = EMA50 above EMA200,
+  price above EMA50, price above EMA100) and how far it is from the missing ones.
+
+The first one is sent right after you deploy this; after that once a day. Separately, the moment BTC
+closes a day **above** its 200-day average you get 🟢 "may buy again" (and 🔴 when it drops below,
+which is when the bot sells and goes to cash). Every paper buy and sell is announced by Freqtrade
+itself as before. Change the time in `config.json`:
+
+```json
+"market_check": {
+  "enabled": true,
+  "hour": 7,
+  "timezone": "UTC",
+  "send_on_startup": false,
+  "regime_alerts": true
+}
+```
+
 ## 6. Going live
 Only when paper trading ran without errors:
 1. Put the money you're prepared to lose into your Binance spot wallet as **USDT**.
